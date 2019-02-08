@@ -64,7 +64,7 @@ class JumpTableAssembler : public TurboAssembler {
     jtasm.EmitLazyCompileJumpSlot(func_index, lazy_compile_target);
     jtasm.NopBytes(kJumpTableSlotSize - jtasm.pc_offset());
     if (flush_i_cache) {
-      Assembler::FlushICache(slot, kJumpTableSlotSize);
+      FlushInstructionCache(slot, kJumpTableSlotSize);
     }
   }
 
@@ -76,7 +76,7 @@ class JumpTableAssembler : public TurboAssembler {
     jtasm.EmitJumpSlot(new_target);
     jtasm.NopBytes(kJumpTableSlotSize - jtasm.pc_offset());
     if (flush_i_cache) {
-      Assembler::FlushICache(slot, kJumpTableSlotSize);
+      FlushInstructionCache(slot, kJumpTableSlotSize);
     }
   }
 
@@ -84,8 +84,9 @@ class JumpTableAssembler : public TurboAssembler {
   // Instantiate a {JumpTableAssembler} for patching.
   explicit JumpTableAssembler(Address slot_addr, int size = 256)
       : TurboAssembler(nullptr, JumpTableAssemblerOptions(),
-                       reinterpret_cast<void*>(slot_addr), size,
-                       CodeObjectRequired::kNo) {}
+                       CodeObjectRequired::kNo,
+                       ExternalAssemblerBuffer(
+                           reinterpret_cast<uint8_t*>(slot_addr), size)) {}
 
 // To allow concurrent patching of the jump table entries, we need to ensure
 // that the instruction containing the call target does not cross cache-line
